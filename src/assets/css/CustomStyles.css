@@ -1,0 +1,36 @@
+.ml-1 {
+    margin-left: 0.25rem;
+}
+
+.action-link {
+    background: none!important;
+    border: none;
+    padding: 0!important;
+    cursor: pointer;
+}
+
+.error-label {
+    color: red;
+    font-style: italic;
+}
+
+.active-page {
+    background-color: lightblue;
+}
+
+.pagination-select {
+    margin-left: 0.25rem;
+    border-radius: 0;
+    height: 20px;
+    padding: 2px;
+}
+
+.disabled-page-link {
+    cursor: not-allowed;
+    opacity: 0.5;
+    pointer-events: none;
+}
+
+.disabled-page-link a {
+    color: gray !important;
+}

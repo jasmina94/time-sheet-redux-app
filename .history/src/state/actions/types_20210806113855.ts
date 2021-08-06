@@ -1,0 +1,7 @@
+// Counter
+
+export const INCREMENT_COUNTER = 'INCREMENT_COUNTER';
+
+
+// CLIENTS
+export const FETCH_CLIENTS = 'FETCH_CLIENT';
