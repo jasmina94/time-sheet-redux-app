@@ -1,59 +1,32 @@
-import { useState, useEffect } from 'react';
+import PropTypes from 'prop-types';
 import '../../assets/css/Styles.css';
+import { connect } from 'react-redux';
+import { useState, useEffect } from 'react';
 import { NewItemForm } from '../forms/NewItemForm';
 import { AlphabetPanel } from '../shared/AlphabetPanel';
 import { SearchControl } from '../shared/SearchControl';
 import { LoadingComponent } from '../shared/LoadingComponent';
-import { ClientDetailsList } from '../clients/ClientDetailsList';
-import { clientService } from '../../services/api/clientService';
-import { getPerPagePaginationOptions, Pagination, PaginationDefaultCongif } from '../shared/Pagination';
-import { searchService } from '../../services/api/searchService';
+import { ClientDetailsList } from './clients/ClientDetailsList';
+import { fetchClients } from '../../state/actions/clients.actions';
+import { Pagination, PaginationDefaultCongif } from '../shared/Pagination';
 
-export const ClientsTabContent = () => {
-	const [searchTerm, setSearchTerm] = useState('');
-	const [dataLoaded, setDataLoaded] = useState(false);
-	const [activeLetter, setActiveLetter] = useState('');
+const ClientsTabContent = (props: any) => {
+	const [currentPage, setCurrentPage] = useState(props.currentPage);
+	const [dataPerPage, setDataPerPage] = useState(props.dataPerPage);
+
+	const [searchTerm, setSearchTerm] = useState(props.searchTerm);
+	const [searchLetter, setSearchLetter] = useState(props.searchLetter);
+	
 	const [toggleNewItem, setToggleNewItem] = useState(false);
-	const [data, setData] = useState(clientService.clientsValue ?? []);
-	const [currentPage, setCurrentPage] = useState(PaginationDefaultCongif.page);
-	const [dataPerPage, setDataPerPage] = useState(PaginationDefaultCongif.limit);
-	const [numOfPages, setNumOfPages] = useState(PaginationDefaultCongif.numOfPages);
-	const [paginationOptions, setPaginationOptions] = useState(PaginationDefaultCongif.perPageOptions);
+	const [paginationOptions] = useState(PaginationDefaultCongif.perPageOptions);
 
 	useEffect(() => {
-		loadData();
-	}, [currentPage, dataPerPage, activeLetter, searchTerm]);
-
-	const loadData = () => {
-		if (activeLetter) {
-			searchService.searchByLetter(currentPage, dataPerPage, 'clients', activeLetter)
-				.then(response => {
-					if (response.success) {
-						setDataLoaded(true);
-						setData(response.data.entities);
-						setNumOfPages(response.data.numOfPages);
-						setPaginationOptions(getPerPagePaginationOptions(response.data.total));
-					} else {
-						setDataLoaded(false);
-					}
-				});
-		} else {
-			clientService.read(currentPage, dataPerPage, searchTerm)
-				.then(response => {
-					if (response.success) {
-						setDataLoaded(true);
-						setData(response.data.clients);
-						setNumOfPages(response.data.numOfPages);
-						setPaginationOptions(getPerPagePaginationOptions(response.data.total));
-					} else {
-						setDataLoaded(false);
-					}
-				});
-		}
+		props.fetchClients(currentPage, dataPerPage, searchTerm, searchLetter);
 
 		if (toggleNewItem)
-			setToggleNewItem(!toggleNewItem);
-	}
+			setToggleNewItem(!toggleNewItem);	
+
+	}, [currentPage, dataPerPage, searchLetter, searchTerm]);
 
 	const reset = () => {
 		setCurrentPage(1);
@@ -66,63 +39,83 @@ export const ClientsTabContent = () => {
 	}
 
 	const searchLetterReset = () => {
-		setActiveLetter('');
+		setSearchLetter('');
 		reset();
-	}
-
-	const searchByTermInProgress = () => {
-		setActiveLetter('');
-		setDataLoaded(false)
 	}
 
 	const searchByTerm = (searchTerm: string) => {
 		setSearchTerm(searchTerm);
-		setActiveLetter('');
+		setSearchLetter('');
 		reset();
 	}
 
 	const searchByLetter = (letter: string) => {
-		setActiveLetter(letter);
+		setSearchLetter(letter);
 		reset();
 	}
 
-	const changePage = (pageNum: number) => { setCurrentPage(pageNum); }
-
 	const changeLimit = (dataPerPage: number) => {
 		setDataPerPage(dataPerPage);
-		setCurrentPage(1);
+		setCurrentPage(PaginationDefaultCongif.page);
 	}
 
 	return (
 		<section className='content'>
 			<h2><i className='ico clients'></i>Clients</h2>
-
 			<div className='grey-box-wrap reports'>
 				<a href='#new-member' className='link new-member-popup' onClick={() => setToggleNewItem(!toggleNewItem)}>Create new client</a>
-				<SearchControl name='search-client'
-					search={searchByTerm}
-					searchReset={searchReset}
-					searchInProgress={searchByTermInProgress} />
+				<SearchControl name='search-client' search={searchByTerm} searchReset={searchReset} searchInProgress={() => setSearchLetter('')} />
 			</div>
 
-			{toggleNewItem && (<NewItemForm formType='client' handleToUpdate={loadData} />)}
+			{toggleNewItem && (<NewItemForm formType='client' handleToUpdate={() => console.log('update')} />)}
 
-			<AlphabetPanel active={activeLetter} disabled='k'
-				page={currentPage} perPage={dataPerPage} 
-				search={searchByLetter}
-				searchInProgress={() => setDataLoaded(false)}
-				searchReset={searchLetterReset} />
+			<AlphabetPanel active={searchLetter} disabled='k' page={currentPage} perPage={dataPerPage}
+				search={searchByLetter} searchReset={searchLetterReset} />
 
-			{dataLoaded
-				? <>
-					<ClientDetailsList clients={data} handleToUpdate={loadData} />
+			{props.loading && <LoadingComponent />}
+			
+			{props.loaded &&
+				<>
+					<ClientDetailsList clients={props.clients} handleToUpdate={() => console.log('update')} />
 
-					<Pagination activePage={currentPage} dataLength={data.length}
-						perPage={dataPerPage} totalNumOfPages={numOfPages}
-						paginate={changePage} changeLimit={changeLimit}
+					<Pagination activePage={currentPage} dataLength={props.total}
+						perPage={dataPerPage} totalNumOfPages={props.numberOfPages}
+						paginate={(pageNum: number) => setCurrentPage(pageNum)} 
+						changeLimit={changeLimit}
 						options={paginationOptions} />
-				</>
-				: <LoadingComponent />}
+				</>}
 		</section>
 	);
 }
+
+ClientsTabContent.propTypes = {
+	fetchClients: PropTypes.func.isRequired,
+
+	clients: PropTypes.array,
+	loaded: PropTypes.bool,
+	loading: PropTypes.bool,
+	total: PropTypes.number,
+
+	searchTerm: PropTypes.string,
+	searchLetter: PropTypes.string,
+
+	currentPage: PropTypes.number,
+	dataPerPage: PropTypes.number,
+	numberOfPages: PropTypes.number
+}
+
+const mapStateToProps = (state: any) => ({
+	clients: state.clientReducer.dataState.data,
+	loaded: state.clientReducer.dataState.loaded,
+	loading: state.clientReducer.dataState.loading,
+	total: state.clientReducer.dataState.total,
+
+	searchTerm: state.clientReducer.searchState.term,
+	searchLetter: state.clientReducer.searchState.letter,
+
+	currentPage: state.clientReducer.pagingState.currentPage,
+	dataPerPage: state.clientReducer.pagingState.dataPerPage,
+	numberOfPages: state.clientReducer.pagingState.numberOfPages
+});
+
+export default connect(mapStateToProps, { fetchClients })(ClientsTabContent);

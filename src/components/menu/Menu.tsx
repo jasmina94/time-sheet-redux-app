@@ -1,5 +1,5 @@
 import '../../assets/css/Styles.css';
-import { MenuItem as MenuItemInterface } from '../../model/Model';
+import { MenuItem as MenuItemInterface } from '../../model/model';
 import MenuItem from './MenuItem';
 
 export const Menu = (props: any) => {

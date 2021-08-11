@@ -1,4 +1,4 @@
-import { MenuItem } from '../../model/Model';
+import { MenuItem } from '../../model/model';
 
 export const menuItems: MenuItem[] = [
   {

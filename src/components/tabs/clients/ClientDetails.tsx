@@ -1,5 +1,4 @@
 import { useState, useMemo } from 'react';
-import { clientService } from '../../services/api/clientService';
 import countryList from 'react-select-country-list';
 
 export const ClientDetails = (props: any) => {
@@ -23,32 +22,32 @@ export const ClientDetails = (props: any) => {
 
     const saveClient = (e: any) => {
         e.preventDefault();
-        clientService.update({id: state.id, name: state.name, address: state.address, city: state.city, zip: state.zip, country: state.country})
-            .then(response => {
-                if (!response.success) {
-                    setState({...state, error: response.error});
-                } else {
-                    const updated = response.data;
-                    setState({...state, id: updated.id, name: updated.name, address: updated.address, city: updated.city, zip: updated.zip, country: updated.country, showDetails: false});
-                    props.handleToUpdate();
-                }
-            });
+        // clientService.update({id: state.id, name: state.name, address: state.address, city: state.city, zip: state.zip, country: state.country})
+        //     .then(response => {
+        //         if (!response.success) {
+        //             setState({...state, error: response.error});
+        //         } else {
+        //             const updated = response.data;
+        //             setState({...state, id: updated.id, name: updated.name, address: updated.address, city: updated.city, zip: updated.zip, country: updated.country, showDetails: false});
+        //             props.handleToUpdate();
+        //         }
+        //     });
     }
 
     const deleteClient = (e: any) => {
         e.preventDefault();
-        clientService.remove(state.id)
-            .then(response => {
-                if (!response.success) {
-                    setState({...state, error: response.error});
-                }
-            })
+        // clientService.remove(state.id)
+        //     .then(response => {
+        //         if (!response.success) {
+        //             setState({...state, error: response.error});
+        //         }
+        //     })
     }
 
 
     const renderCountryOptions = (): any[] => {
         let options: any[] = [];
-        countries.forEach(item => {
+        countries.forEach((item: any) => {
             options.push(
                 <option value={item.value}>{item.label}</option>
             );

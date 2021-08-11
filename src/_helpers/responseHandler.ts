@@ -1,3 +1,5 @@
+import { userService } from "../services/user.service";
+
 const UNAUTH = [401, 403];
 
 export function handleResponse(response: any) {
@@ -8,9 +10,7 @@ export function handleResponse(response: any) {
             if (!response.ok) {
                 const status = response.status;
                 if (UNAUTH.indexOf(status) !== -1) {
-                    console.log('Dispatch logout');
-                    // LOGOUT DISPATCH
-                    //authenticationService.logout();
+                    userService.logout();
                 }
 
                 const error = (data && data.error) || response.statusText;

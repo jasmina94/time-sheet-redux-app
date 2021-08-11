@@ -1,5 +1,4 @@
-import { useState } from 'react';
-import { Client } from '../../model/Model';
+import { Client } from '../../../model/model';
 import { ClientDetails } from './ClientDetails';
 
 export const ClientDetailsList = (props: any) => {

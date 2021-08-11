@@ -1,8 +1,5 @@
-import { clientService } from "../../services/api/clientService";
-import { selectOptionService } from "../../services/selectOptionService";
-import { userService } from "../../services/api/userService";
 import { useState, useEffect } from "react";
-import { projectService } from "../../services/api/projectService";
+
 
 export const ProjectForm = (props: any) => {
     const [error, setError] = useState('');
@@ -17,20 +14,20 @@ export const ProjectForm = (props: any) => {
     });
 
     useEffect(() => {
-        clientService.readAll()
-            .then(response => {
-                if (response.success) {
-                    const clients = selectOptionService.getClients(response.data, true);
-                    setCustomerOptions(clients);
-                }
-            })
-        userService.getAll()
-            .then(users => {
-                if (users && users.length !== 0) {
-                    const leads = selectOptionService.getLeads(users, true);
-                    setLeadOptions(leads);
-                }
-            })
+        // clientService.readAll()
+        //     .then(response => {
+        //         if (response.success) {
+        //             const clients = selectOptionService.getClients(response.data, true);
+        //             setCustomerOptions(clients);
+        //         }
+        //     })
+        // userService.getAll()
+        //     .then(users => {
+        //         if (users && users.length !== 0) {
+        //             const leads = selectOptionService.getLeads(users, true);
+        //             setLeadOptions(leads);
+        //         }
+        //     })
     }, [])
 
     const isValid = (): boolean => {
@@ -58,14 +55,14 @@ export const ProjectForm = (props: any) => {
     const handleSave = (e: any) => {
         e.preventDefault();
         if (isValid()) {
-            projectService.create({ ...project, id: '' })
-                .then(response => {
-                    if (!response.success) {
-                        setError(response.error);
-                    } else {
-                        props.handleToUpdate();
-                    }
-                })
+            // projectService.create({ ...project, id: '' })
+            //     .then(response => {
+            //         if (!response.success) {
+            //             setError(response.error);
+            //         } else {
+            //             props.handleToUpdate();
+            //         }
+            //     })
         }
     }
 

@@ -1,19 +1,22 @@
 import '../assets/css/Styles.css';
-import { useHistory } from 'react-router';
+import PropTypes from 'prop-types';
+import { connect } from 'react-redux';
+import { history } from '../_helpers/historyHelper';
+import { logoutUser } from '../state/actions/user.actions';
+import ClientsTabContent from '../components/tabs/ClientsTabContent';
+import ProjectsTabContent from '../components/tabs/ProjectsTabContent';
 import {
-    ClientsTabContent, TimeSheetTabContent,
-    ReportsTabContent, ProjectsTabContent,
+    TimeSheetTabContent,
+    ReportsTabContent,
     CategoriesTabContent, TeamMembersTabContent
 } from '../components/tabs';
 import Footer from '../components/shared/Footer';
 import { Menu, MobileMenu, UserMenu, menuItems } from '../components/menu';
 import { useState } from 'react';
 
-export const HomePage = () => {
-    const history = useHistory();
+const HomePage = (props: any) => {
     const [activeTab, setActiveTab] = useState('timesheet');
     const [toggleOpenProfile, setToggleOpenProfile] = useState(false);
-    const [userInfo, setUserInfo] = useState({firstname: 'Jas', lastname: 'Jas'});
 
     const renderTabContent = () => {
         switch (activeTab) {
@@ -41,7 +44,7 @@ export const HomePage = () => {
 
     const logout = (e: any) => {
         e.preventDefault();
-        //authenticationService.logout();
+        props.logoutUser();
     }
 
     const handleTabClick = (e: any) => {
@@ -60,7 +63,7 @@ export const HomePage = () => {
                     </a>
                     <ul className='user right'>
                         <li>
-                            <a href='!#' onClick={handleProfileLink}>{userInfo.firstname} {userInfo.lastname}</a>
+                            <a href='!#' onClick={handleProfileLink}>{props.user.firstname} {props.user.lastname}</a>
                             <div className='invisible'></div>
                             {toggleOpenProfile && (<UserMenu />)}
                         </li>
@@ -83,3 +86,14 @@ export const HomePage = () => {
 
     );
 }
+
+HomePage.propTypes = {
+    logoutUser: PropTypes.func.isRequired,
+    user: PropTypes.object
+}
+
+const mapStateToProps = (state: any) => ({
+    user: state.userReducer.userInfo
+});
+
+export default connect(mapStateToProps, { logoutUser })(HomePage);

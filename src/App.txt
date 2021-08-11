@@ -1,7 +1,3 @@
-import PropTypes from 'prop-types';
-import { connect } from 'react-redux';
-import { incrementCounter } from './state/actions/counterActions';
-
 const App = (props: any) => {
   return (
     <>
@@ -22,15 +18,7 @@ const mapStateToProps = (state: any) => ({
 })
 
 export default connect(mapStateToProps, {incrementCounter})(App);
-
-
-
-import PropTypes from 'prop-types';
-import { useEffect } from 'react';
-import { connect } from 'react-redux';
-import { fetchClients } from './state/actions/clientsActions';
-import { Client } from './model/model';
-
+-----------------------------------------------------------------------------
 
 const App = (props: any) => {
 
@@ -85,3 +73,4 @@ const mapStateToProps = (state: any) => ({
 })
 
 export default connect(mapStateToProps, { fetchClients })(App);
+-----------------------------------------------------------------------------

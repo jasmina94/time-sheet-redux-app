@@ -1,16 +1,16 @@
-import { Route, Router, Switch } from 'react-router-dom';
+import { Router, Route, Switch } from 'react-router-dom';
+import { history } from '../_helpers/historyHelper';
 import { PrivateRoute } from '../components/shared/PrivateRoute';
-import { HomePage, LoginPage, ForgotPasswordPage } from '../pages';
-import { createBrowserHistory } from 'history';
-
-export const history = createBrowserHistory();
+import { ForgotPasswordPage } from '../pages';
+import LoginPage from '../pages/loginPage';
+import HomePage from '../pages/homePage';
 
 const App = () => {
   return (
     <Router history={history}>
       <Switch>
         <PrivateRoute exact path="/" component={HomePage}/>
-        <Route path="/login" component={LoginPage} />
+        <Route path="/login" component={LoginPage}  />
         <Route path="/forgotPassword" component={ForgotPasswordPage} />
       </Switch>
     </Router>
