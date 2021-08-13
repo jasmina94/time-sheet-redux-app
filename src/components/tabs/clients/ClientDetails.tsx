@@ -1,8 +1,16 @@
+import PropTypes from 'prop-types';
+import { connect } from 'react-redux';
 import { useState, useMemo } from 'react';
 import countryList from 'react-select-country-list';
+import { updateClient, deleteClient } from '../../../state/actions/clients.actions';
 
-export const ClientDetails = (props: any) => {
+const ClientDetails = (props: any) => {
     const  countries = useMemo(() => countryList().getData(), []);
+
+    const [progress, setProgress] = useState(props.actionInProgess);
+    const [error, setError] = useState(props.error);
+
+    const [showDetails, setShowDetails] = useState(false);
 
     const [state, setState] = useState({
         id: props.client.id,
@@ -11,37 +19,29 @@ export const ClientDetails = (props: any) => {
         city: props.client.city,
         zip: props.client.zip,
         country: props.client.country,
-        error: '',
-        showDetails: false
     });
 
     const toggleDetails = (e: any) => {
         e.preventDefault();
-        setState({...state, showDetails: !state.showDetails});
+        setShowDetails(!showDetails);
     }
 
     const saveClient = (e: any) => {
         e.preventDefault();
-        // clientService.update({id: state.id, name: state.name, address: state.address, city: state.city, zip: state.zip, country: state.country})
-        //     .then(response => {
-        //         if (!response.success) {
-        //             setState({...state, error: response.error});
-        //         } else {
-        //             const updated = response.data;
-        //             setState({...state, id: updated.id, name: updated.name, address: updated.address, city: updated.city, zip: updated.zip, country: updated.country, showDetails: false});
-        //             props.handleToUpdate();
-        //         }
-        //     });
+        const client = {
+            id: state.id,
+            name: state.name,
+            address: state.address,
+            city: state.city,
+            zip: state.zip, 
+            country: state.country
+        }
+        props.updateClient(client);
     }
 
     const deleteClient = (e: any) => {
         e.preventDefault();
-        // clientService.remove(state.id)
-        //     .then(response => {
-        //         if (!response.success) {
-        //             setState({...state, error: response.error});
-        //         }
-        //     })
+        props.deleteClient(state.id);
     }
 
 
@@ -49,7 +49,7 @@ export const ClientDetails = (props: any) => {
         let options: any[] = [];
         countries.forEach((item: any) => {
             options.push(
-                <option value={item.value}>{item.label}</option>
+                <option key={item.value} value={item.value}>{item.label}</option>
             );
         });
 
@@ -62,7 +62,7 @@ export const ClientDetails = (props: any) => {
                 <span>{props.client.name}</span>
                 <i>+</i>
             </div>
-            {state.showDetails && (
+            {showDetails && (
                 <div className='details'>
                     <ul className='form'>
                         <li>
@@ -82,7 +82,7 @@ export const ClientDetails = (props: any) => {
                         <li>
                             <label>Country:</label>
                             <select name='country' value={state.country} onChange={(e) => {setState({...state, country: e.target.value})}}>
-                                <option>Select country</option>
+                                <option key='#'>Select country</option>
                                 {renderCountryOptions()}
                             </select>
                         </li>
@@ -93,8 +93,11 @@ export const ClientDetails = (props: any) => {
                             <input type='text' name='city' className='in-text' value={state.city} onChange={(e) => {setState({...state, city: e.target.value})}}/>
                         </li>
                     </ul>
-                    <label className='error-label'>{state.error}</label>
+                    
+                    <label className='error-label'>{error}</label>
+
                     <div className='buttons'>
+                        {props.actionInProgress && <p>...</p>}
                         <div className='inner'>
                             <a href=' ' className='btn green' onClick={saveClient}>Save</a>
                             <a href=' ' className='btn red' onClick={deleteClient}>Delete</a>
@@ -105,3 +108,17 @@ export const ClientDetails = (props: any) => {
         </div>
     )
 };
+
+ClientDetails.propTypes = {
+    updateClient: PropTypes.func.isRequired,
+    deleteClient: PropTypes.func.isRequired,
+
+    client: PropTypes.object.isRequired,
+    actionInProgress: PropTypes.bool
+}
+
+const mapStateToProps = (state: any) => ({
+    actionInProgress: state.clientReducer.actionInProgress
+});
+
+export default connect(mapStateToProps, {updateClient, deleteClient})(ClientDetails);

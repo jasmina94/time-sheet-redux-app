@@ -1,18 +1,12 @@
-import { useState } from "react";
-import countryList from "react-select-country-list";
-import { useMemo } from "react";
+import PropTypes from 'prop-types';
+import { connect } from 'react-redux';
+import { useState, useMemo } from 'react';
+import countryList from 'react-select-country-list';
+import { createClient } from '../../../state/actions/clients.actions';
 
-export const ClientForm = (props: any) => {
-    const  countries = useMemo(() => countryList().getData(), []);
-
-    const [client, setClient] = useState({
-        name: '',
-        address: '',
-        city: '',
-        zip: '',
-        country: ''
-    });
-
+const ClientForm = (props: any) => {
+    const countries = useMemo(() => countryList().getData(), []);
+    const [client, setClient] = useState(props.newClient);
     const [error, setError] = useState('');
 
     const handleInputChange = (e: any) => {
@@ -55,14 +49,10 @@ export const ClientForm = (props: any) => {
     const handleSave = (e: any) => {
         e.preventDefault();
         if (isValid()) {
-            // clientService.create({ ...client, id: '' })
-            //     .then(response => {
-            //         if (!response.success) {
-            //             setError(response.error);
-            //         } else {
-            //             props.handleToUpdate();
-            //         }
-            //     });
+            props.createClient(client);
+            if (props.error === '') {
+               props.handleSuccessResponse();
+            }
         }
     }
 
@@ -80,37 +70,54 @@ export const ClientForm = (props: any) => {
     return (
         <>
             <h2>Create new client</h2>
-            <ul className="form">
+            <ul className='form'>
                 <li>
                     <label>Client name:</label>
-                    <input type="text" name="name" className="in-text" value={client.name} onChange={handleInputChange} />
+                    <input type='text' name='name' className='in-text' value={client.name} onChange={handleInputChange} />
                 </li>
                 <li>
                     <label>Address:</label>
-                    <input type="text" name="address" className="in-text" value={client.address} onChange={handleInputChange} />
+                    <input type='text' name='address' className='in-text' value={client.address} onChange={handleInputChange} />
                 </li>
                 <li>
                     <label>City:</label>
-                    <input type="text" name="city" className="in-text" value={client.city} onChange={handleInputChange} />
+                    <input type='text' name='city' className='in-text' value={client.city} onChange={handleInputChange} />
                 </li>
                 <li>
                     <label>Zip/Postal code:</label>
-                    <input type="text" name="zip" className="in-text" value={client.zip} onChange={handleInputChange} />
+                    <input type='text' name='zip' className='in-text' value={client.zip} onChange={handleInputChange} />
                 </li>
                 <li>
                     <label>Country:</label>
-                     <select name="country" onChange={handleInputChange} value={client.country}>
+                    <select name='country' onChange={handleInputChange} value={client.country}>
                         <option>Select country</option>
                         {renderCountryOptions()}
                     </select>
                 </li>
-                <li className="error-label">{error}</li>
+                <li className='error-label'>{error}</li>
             </ul>
-            <div className="buttons">
-                <div className="inner">
-                    <a href=" " className="btn green" onClick={handleSave}>Save</a>
+            <div className='buttons'>
+                <div className='inner'>
+                    <a href=' ' className='btn green' onClick={handleSave}>Save</a>
                 </div>
             </div>
         </>
     );
 }
+
+ClientForm.propTypes = {
+    createClient: PropTypes.func.isRequired,
+    handleSuccessResponse: PropTypes.func.isRequired,
+
+    newClient: PropTypes.object,
+    error: PropTypes.string,
+    loading: PropTypes.bool
+}
+
+const mapStateToProps = (state: any) => ({
+    newClient: state.clientReducer.newItem.item,
+    error: state.clientReducer.newItem.error,
+    loading: state.clientReducer.newItem.loading
+})
+
+export default connect(mapStateToProps, { createClient })(ClientForm);

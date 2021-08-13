@@ -17,16 +17,16 @@ const ClientsTabContent = (props: any) => {
 	const [searchTerm, setSearchTerm] = useState(props.searchTerm);
 	const [searchLetter, setSearchLetter] = useState(props.searchLetter);
 	
-	const [toggleNewItem, setToggleNewItem] = useState(false);
+	const [toggleNewItem, setToggleNewItem] = useState(props.newItemToggle);
 	const [paginationOptions] = useState(PaginationDefaultCongif.perPageOptions);
 
 	useEffect(() => {
 		props.fetchClients(currentPage, dataPerPage, searchTerm, searchLetter);
-
-		if (toggleNewItem)
-			setToggleNewItem(!toggleNewItem);	
-
 	}, [currentPage, dataPerPage, searchLetter, searchTerm]);
+
+	useEffect(() => {
+		console.log('Use effect');
+	}, [toggleNewItem])
 
 	const reset = () => {
 		setCurrentPage(1);
@@ -67,7 +67,7 @@ const ClientsTabContent = (props: any) => {
 				<SearchControl name='search-client' search={searchByTerm} searchReset={searchReset} searchInProgress={() => setSearchLetter('')} />
 			</div>
 
-			{toggleNewItem && (<NewItemForm formType='client' handleToUpdate={() => console.log('update')} />)}
+			{toggleNewItem && (<NewItemForm formType='client' handleUpdate={() => setToggleNewItem(!toggleNewItem)}/>)}
 
 			<AlphabetPanel active={searchLetter} disabled='k' page={currentPage} perPage={dataPerPage}
 				search={searchByLetter} searchReset={searchLetterReset} />
@@ -76,7 +76,7 @@ const ClientsTabContent = (props: any) => {
 			
 			{props.loaded &&
 				<>
-					<ClientDetailsList clients={props.clients} handleToUpdate={() => console.log('update')} />
+					<ClientDetailsList clients={props.clients} />
 
 					<Pagination activePage={currentPage} dataLength={props.total}
 						perPage={dataPerPage} totalNumOfPages={props.numberOfPages}
@@ -101,7 +101,9 @@ ClientsTabContent.propTypes = {
 
 	currentPage: PropTypes.number,
 	dataPerPage: PropTypes.number,
-	numberOfPages: PropTypes.number
+	numberOfPages: PropTypes.number,
+
+	newItemToggle: PropTypes.bool
 }
 
 const mapStateToProps = (state: any) => ({
@@ -115,7 +117,9 @@ const mapStateToProps = (state: any) => ({
 
 	currentPage: state.clientReducer.pagingState.currentPage,
 	dataPerPage: state.clientReducer.pagingState.dataPerPage,
-	numberOfPages: state.clientReducer.pagingState.numberOfPages
+	numberOfPages: state.clientReducer.pagingState.numberOfPages,
+
+	newItemToggle: state.clientReducer.actionInProgress
 });
 
 export default connect(mapStateToProps, { fetchClients })(ClientsTabContent);

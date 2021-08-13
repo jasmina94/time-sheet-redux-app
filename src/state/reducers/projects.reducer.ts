@@ -3,6 +3,7 @@ import { FETCH_PROJECTS, FETCH_PROJECTS_SUCCESS } from '../actions/types';
 import { PaginationDefaultCongif } from '../../components/shared/Pagination';
 
 export const initState: TabState = {
+    actionInProgress: false,
     dataState: {
         data: [],
         loaded: false,
@@ -17,6 +18,21 @@ export const initState: TabState = {
         currentPage: PaginationDefaultCongif.page,
         dataPerPage: PaginationDefaultCongif.limit,
         numberOfPages: PaginationDefaultCongif.numOfPages
+    },
+    newItem: {
+        error: '',
+        item: {},
+        toggle: false
+    },
+    activeItem: {
+        error: '',
+        item: {
+            name: '',
+            address: '',
+            city: '',
+            zip: '',
+            country: ''
+        }
     }
 };
 

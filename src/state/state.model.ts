@@ -17,10 +17,23 @@ export interface SearchState {
     term: string
 }
 
+export interface NewItemState {
+    item: object,
+    error: string,
+    toggle: boolean
+}
+
+export interface ItemState {
+    item: object,
+    error: string
+}
 export interface TabState {
+    actionInProgress: boolean,
     dataState: DataState,
     pagingState: PagingState,
-    searchState: SearchState  
+    searchState: SearchState,
+    newItem: NewItemState,
+    activeItem: ItemState
 }
 
 export interface UserState {
