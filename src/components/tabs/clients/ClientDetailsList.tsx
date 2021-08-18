@@ -1,5 +1,5 @@
 import { Client } from '../../../model/model';
-import ClientDetails from './ClientDetails';
+import { ClientDetails } from './ClientDetails';
 
 export const ClientDetailsList = (props: any) => {
     return (

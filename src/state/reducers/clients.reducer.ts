@@ -1,9 +1,12 @@
 import { TabState } from '../state.model';
-import { CREATE_CLIENT, CREATE_CLIENT_FAILURE, CREATE_CLIENT_SUCCESS, DELETE_CLIENT, DELETE_CLIENT_FAILURE, FETCH_CLIENTS, FETCH_CLIENTS_SUCCESS } from '../actions/types';
+import {
+    CREATE_CLIENT, CREATE_CLIENT_SUCCESS,
+    DELETE_CLIENT, UPDATE_CLIENT,
+    FETCH_CLIENTS, FETCH_CLIENTS_SUCCESS
+} from '../actions/types';
 import { PaginationDefaultCongif } from '../../components/shared/Pagination';
 
 export const initState: TabState = {
-    actionInProgress: false,
     dataState: {
         data: [],
         loaded: false,
@@ -20,17 +23,6 @@ export const initState: TabState = {
         numberOfPages: PaginationDefaultCongif.numOfPages
     },
     newItem: {
-        error: '',
-        toggle: false,
-        item: {
-            name: '',
-            address: '',
-            city: '',
-            zip: '',
-            country: ''
-        }
-    },
-    activeItem: {
         error: '',
         item: {
             name: '',
@@ -91,7 +83,6 @@ export default function clientReducer(state = initState, action: any) {
                         country: action.payload.newClient.country
                     },
                     error: '',
-                    toggle: true
                 },
                 dataState: { ...state.dataState },
                 pagingState: { ...state.pagingState },
@@ -102,7 +93,6 @@ export default function clientReducer(state = initState, action: any) {
                 ...state,
                 newItem: {
                     error: '',
-                    toggle: false,
                     item: {
                         name: '',
                         address: '',
@@ -115,19 +105,7 @@ export default function clientReducer(state = initState, action: any) {
                 pagingState: { ...state.pagingState },
                 searchState: { ...state.searchState }
             }
-        case CREATE_CLIENT_FAILURE:
-            return {
-                ...state,
-                newItem: {
-                    ...state.newItem,
-                    error: action.payload.err,
-                },
-                dataState: { ...state.dataState },
-                pagingState: { ...state.pagingState },
-                searchState: { ...state.searchState }
-            }
-        case DELETE_CLIENT:
-            console.log('Deleting client with id: ' + action.payload.clientId);
+        case UPDATE_CLIENT:
             return {
                 ...state,
                 dataState: {
@@ -142,13 +120,20 @@ export default function clientReducer(state = initState, action: any) {
                     ...state.searchState
                 }
             }
-        case DELETE_CLIENT_FAILURE:
-            console.log('Failure deleting client: ' + action.payload.err)
+        case DELETE_CLIENT:
             return {
                 ...state,
-                dataState: { ...state.dataState },
-                pagingState: { ...state.pagingState },
-                searchState: { ...state.searchState }
+                dataState: {
+                    ...state.dataState,
+                    loading: true,
+                    loaded: false
+                },
+                pagingState: {
+                    ...state.pagingState
+                },
+                searchState: {
+                    ...state.searchState
+                }
             }
         default:
             return state;

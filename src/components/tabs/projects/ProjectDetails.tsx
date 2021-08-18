@@ -1,15 +1,24 @@
 import { useState } from 'react';
-import { ProjectStatus } from '../../../model/model';
+import { Project, ProjectStatus } from '../../../model/model';
+import { useAppDispatch, useAppSelector } from '../../../state/hooks';
+import { validateProject } from '../../../services/validation.service';
+import { deleteProject, fetchProjects, updateProject } from '../../../state/actions/projects.actions';
+
+const ACTIVE_STATUS = ProjectStatus.ACTIVE.valueOf();
+const INACTIVE_STATUS = ProjectStatus.INACTIVE.valueOf();
+const ARCHIVE_STATUS = ProjectStatus.ARCHIVE.valueOf();
 
 export const ProjectDetails = (props: any) => {
-    // ADD mapping for drop-down lists here to redux state
+    const dispatch = useAppDispatch();
 
-    const ACTIVE_STATUS = ProjectStatus.ACTIVE.valueOf();
-    const INACTIVE_STATUS = ProjectStatus.INACTIVE.valueOf();
-    const ARCHIVE_STATUS = ProjectStatus.ARCHIVE.valueOf();
+    const leadOptions = useAppSelector(state => state.projectReducer.leadOptions);
+    const customerOptions = useAppSelector(state => state.projectReducer.customerOptions);
+    const currentPage = useAppSelector(state => state.projectReducer.tabState.pagingState.currentPage);
+    const dataPerPage = useAppSelector(state => state.projectReducer.tabState.pagingState.dataPerPage);
 
-    const [toggleDetails, setToggleDetails] = useState(false);
-    const [state, setState] = useState({
+    const [showDetails, setShowDetails] = useState(false);
+    const [error, setError] = useState('');
+    const [details, setDetails] = useState({
         id: props.project.id,
         name: props.project.name,
         customerId: props.project.customer.id,
@@ -17,65 +26,57 @@ export const ProjectDetails = (props: any) => {
         description: props.project.description,
         lead: props.project.lead.id,
         status: props.project.status,
-        error: ''
     });
 
-    const handleToggleDetails = (e: any) => {
-        e.preventDefault();
-        setToggleDetails(!toggleDetails);
-    }
-
     const handleStatusChange = (e: any) => {
-        setState({ ...state, status: parseInt(e.target.value) })
+        setDetails({ ...details, status: parseInt(e.target.value) })
     }
 
-    const saveProject = (e: any) => {
-        e.preventDefault();
-        // projectService.update({
-        //     id: state.id, name: state.name, description: state.description,
-        //     status: parseInt(state.status), customer: parseInt(state.customerId), lead: parseInt(state.lead)
-        // })
-        //     .then(response => {
-        //         if (!response.success) {
-        //             setState({ ...state, error: response.error });
-        //         } else {
-        //             const updated = response.data;
-        //             setState({ ...state, id: updated.id, name: updated.name, });
-        //             setToggleDetails(false);
-        //             props.handleToUpdate();
-        //         }
-        //     });
+    const successfulUpdateCallback = () => {
+        setShowDetails(false);
+        dispatch(fetchProjects(currentPage, dataPerPage, '', ''));
     }
 
-    const deleteProject = (e: any) => {
+    const save = (e: any) => {
         e.preventDefault();
-        // projectService.remove(state.id)
-        //     .then(response => {
-        //         if (response === '') {
-        //             props.handleToUpdate();
-        //         } else {
-        //             setState({ ...state, error: response.error });
-        //         }
-        //     });
+        const project: Project = {
+            id: details.id,
+            name: details.name,
+            status: details.status,
+            customer: details.customerId,
+            description: details.description,
+            lead: details.lead            
+        }
+        const validationResult = validateProject(project);
+        if (validationResult.isValid) {
+            dispatch(updateProject(project, successfulUpdateCallback))
+        } else {
+            setError(validationResult.error);
+        }
+    }
+
+    const remove = (e: any) => {
+        e.preventDefault();
+        dispatch(deleteProject(details.id));
     }
 
     return (
         <div className='item'>
-            <div className='heading' onClick={handleToggleDetails}>
-                <span>{props.project.name}</span> <span><em>({state.customerName})</em></span>
+            <div className='heading' onClick={() => setShowDetails(!showDetails)}>
+                <span>{props.project.name}</span> <span><em>({details.customerName})</em></span>
                 <i>+</i>
             </div>
-            {toggleDetails && (
+            {showDetails && (
                 <div className='details'>
                     <ul className='form'>
                         <li>
                             <label>Project name:</label>
-                            <input type='text' name='name' className='in-text' value={state.name} onChange={(e) => { setState({ ...state, name: e.target.value }) }} />
+                            <input type='text' name='name' className='in-text' value={details.name} onChange={(e) => { setDetails({ ...details, name: e.target.value }) }} />
                         </li>
                         <li>
                             <label>Lead:</label>
-                            <select name='lead' value={state.lead} onChange={(e) => { setState({ ...state, lead: e.target.value }) }}>
-                                {props.leadOptions.map((item: any) =>
+                            <select name='lead' value={details.lead} onChange={(e) => { setDetails({ ...details, lead: e.target.value }) }}>
+                                {leadOptions.map((item: any) =>
                                     <option value={item.value} key={item.value}>{item.label}</option>
                                 )}
                             </select>
@@ -84,15 +85,15 @@ export const ProjectDetails = (props: any) => {
                     <ul className='form'>
                         <li>
                             <label>Description:</label>
-                            <input type='text' name='description' className='in-text' value={state.description} onChange={(e) => { setState({ ...state, description: e.target.value }) }} />
+                            <input type='text' name='description' className='in-text' value={details.description} onChange={(e) => { setDetails({ ...details, description: e.target.value }) }} />
                         </li>
 
                     </ul>
                     <ul className='form last'>
                         <li>
                             <label>Customer:</label>
-                            <select name='customer' value={state.customerId} onChange={(e) => { setState({ ...state, customerId: e.target.value }) }}>
-                                {props.customerOptions.map((item: any) =>
+                            <select name='customer' value={details.customerId} onChange={(e) => { setDetails({ ...details, customerId: e.target.value }) }}>
+                                {customerOptions.map((item: any) =>
                                     <option value={item.value} key={item.value}>{item.label}</option>
                                 )}
                             </select>
@@ -101,26 +102,26 @@ export const ProjectDetails = (props: any) => {
                             <label style={{ width: '100%' }}>Status:</label>
                             <span className='radio' style={{ width: '33%' }}>
                                 <label htmlFor='active'>Inactive:</label>
-                                <input type='radio' value='0' name={state.id + '-name'}
-                                    checked={state.status === INACTIVE_STATUS} onChange={handleStatusChange} />
+                                <input type='radio' value='0' name={details.id + '-name'}
+                                    checked={details.status === INACTIVE_STATUS} onChange={handleStatusChange} />
                             </span>
                             <span className='radio' style={{ width: '33%' }}>
                                 <label htmlFor='inactive'>Active:</label>
-                                <input type='radio' value='1' name={state.id + '-name'}
-                                    checked={state.status === ACTIVE_STATUS} onChange={handleStatusChange} />
+                                <input type='radio' value='1' name={details.id + '-name'}
+                                    checked={details.status === ACTIVE_STATUS} onChange={handleStatusChange} />
                             </span>
                             <span className='radio' style={{ width: '33%' }}>
                                 <label htmlFor='active'>Archive:</label>
-                                <input type='radio' value='2' name={state.id + '-name'}
-                                    checked={state.status === ARCHIVE_STATUS} onChange={handleStatusChange} />
+                                <input type='radio' value='2' name={details.id + '-name'}
+                                    checked={details.status === ARCHIVE_STATUS} onChange={handleStatusChange} />
                             </span>
                         </li>
                     </ul>
-                    <label className='error-label'>{state.error}</label>
+                    <label className='error-label'>{error}</label>
                     <div className='buttons'>
                         <div className='inner'>
-                            <a href=' ' className='btn green' onClick={saveProject}>Save</a>
-                            <a href=' ' className='btn red' onClick={deleteProject}>Delete</a>
+                            <a href=' ' className='btn green' onClick={save}>Save</a>
+                            <a href=' ' className='btn red' onClick={remove}>Delete</a>
                         </div>
                     </div>
                 </div>

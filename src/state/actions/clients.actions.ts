@@ -1,11 +1,10 @@
 import { searchService } from '../../services/search.service';
 import { clientsService } from '../../services/clients.service';
 import {
-    CREATE_CLIENT, CREATE_CLIENT_FAILURE, CREATE_CLIENT_SUCCESS,
-    DELETE_CLIENT, DELETE_CLIENT_FAILURE,
-    DELETE_CLIENT_SUCCESS,
-    FETCH_CLIENTS, FETCH_CLIENTS_FAILURE, FETCH_CLIENTS_SUCCESS,
-    UPDATE_CLIENT, UPDATE_CLIENT_FAILURE, UPDATE_CLIENT_SUCCESS
+    CREATE_CLIENT, CREATE_CLIENT_SUCCESS,
+    DELETE_CLIENT, FETCH_CLIENTS, FETCH_CLIENTS_SUCCESS,
+    UPDATE_CLIENT, UPDATE_CLIENT_SUCCESS,
+    FAILURE_MESSAGE, SUCCESS_MESSAGE    
 } from './types';
 import { Client } from '../../model/model';
 
@@ -36,54 +35,65 @@ export const fetchClients = (page: number, perPage: number, term: string = '', l
                 }
             }))
             .catch(err => {
-                console.log(err);
                 dispatch({
-                    type: FETCH_CLIENTS_FAILURE,
-                    payload: { err }
-                })
+                    type: FAILURE_MESSAGE,
+                    payload: { message: err }
+                });
             });
     }, 1000);
 };
 
-export const createClient = (client: Client) => (dispatch: any) => {
+export const createClient = (client: Client, refreshCallback: any) => (dispatch: any) => {
     dispatch({
         type: CREATE_CLIENT,
         payload: {
             newClient: client
         }
     });
-    clientsService.create(client)
+    setTimeout(() => {
+        clientsService.create(client)
+            .then(res => {
+                dispatch({
+                    type: CREATE_CLIENT_SUCCESS,
+                    payload: {
+                        client: res.data
+                    }
+                });
+                dispatch({
+                    type: SUCCESS_MESSAGE,
+                    payload: { message: 'Successfully created new client!' }
+                });
+                refreshCallback();
+            })
+            .catch(err => {
+                dispatch({
+                    type: FAILURE_MESSAGE,
+                    payload: { message: err }
+                });
+            })
+    }, 2000);
+};
+
+export const updateClient = (client: Client, refreshCallback: any) => (dispatch: any) => {
+    dispatch({ type: UPDATE_CLIENT });
+    clientsService.update(client)
         .then(res => {
-            console.log('success: ' + res.data);
             dispatch({
-                type: CREATE_CLIENT_SUCCESS,
+                type: UPDATE_CLIENT_SUCCESS,
                 payload: {
                     client: res.data
                 }
-            })
+            });
+            dispatch({
+                type: SUCCESS_MESSAGE,
+                payload: { message: `Successfully updated client with id: ${client.id}` }
+            });
+            refreshCallback();
         })
         .catch(err => {
             dispatch({
-                type: CREATE_CLIENT_FAILURE,
-                payload: { err }
-            })
-        })
-};
-
-export const updateClient = (client: Client) => (dispatch: any) => {
-    dispatch({ type: UPDATE_CLIENT })
-    clientsService.update(client)
-        .then(res => dispatch({
-            type: UPDATE_CLIENT_SUCCESS,
-            payload: {
-                client: res.data
-            }
-        }))
-        .catch(err => {
-            console.log(err);
-            dispatch({
-                type: UPDATE_CLIENT_FAILURE,
-                payload: { err }
+                type: FAILURE_MESSAGE,
+                payload: { message: err }
             })
         });
 };
@@ -93,15 +103,14 @@ export const deleteClient = (id: number) => (dispatch: any) => {
     clientsService.remove(id)
         .then(res => {
             dispatch({
-                type: DELETE_CLIENT_SUCCESS,
-                payload: { res }
-            })
+                type: SUCCESS_MESSAGE,
+                payload: { message: `Deleted client with id: ${id}.` }
+            });
         })
         .catch(err => {
-            console.log(err);
             dispatch({
-                type: DELETE_CLIENT_FAILURE,
-                payload: { err }
+                type: FAILURE_MESSAGE,
+                payload: { message: err }
             })
         });
 };

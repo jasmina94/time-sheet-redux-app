@@ -3,8 +3,8 @@ import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { history } from '../_helpers/historyHelper';
 import { logoutUser } from '../state/actions/user.actions';
-import ClientsTabContent from '../components/tabs/ClientsTabContent';
-import ProjectsTabContent from '../components/tabs/ProjectsTabContent';
+import { ClientsTabContent } from '../components/tabs/ClientsTabContent';
+import { ProjectsTabContent } from '../components/tabs/ProjectsTabContent';
 import {
     TimeSheetTabContent,
     ReportsTabContent,

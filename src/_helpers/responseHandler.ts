@@ -1,4 +1,4 @@
-import { userService } from "../services/user.service";
+import { authService } from '../services/authentication.service';
 
 const UNAUTH = [401, 403];
 
@@ -10,7 +10,7 @@ export function handleResponse(response: any) {
             if (!response.ok) {
                 const status = response.status;
                 if (UNAUTH.indexOf(status) !== -1) {
-                    userService.logout();
+                    authService.logout();
                 }
 
                 const error = (data && data.error) || response.statusText;

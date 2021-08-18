@@ -13,7 +13,7 @@ const initialState: UserState = {
     ttl: 0
 }
 
-export default function userReducer(state: UserState = initialState, action: any) {
+export default function userReducer(state = initialState, action: any) {
     switch(action.type) {
         case LOGIN_REQUEST:
             return {
@@ -36,9 +36,10 @@ export default function userReducer(state: UserState = initialState, action: any
         case LOGIN_REQUEST_FAILURE:
             return {
                 ...state,
+                error: action.payload.err,
                 loggingIn: false,
                 loggedIn: false,
-                userInfo: {}
+                userInfo: {},
             }
         case LOGOUT:
             return initialState;

@@ -25,3 +25,7 @@ export const store = createStore(rootReducer, initialState, composedEnhancers);
 export const persistor = persistStore(store);
 
 export default { store, persistor };
+
+export type RootState = ReturnType<typeof store.getState>;
+
+export type AppDispatch = typeof store.dispatch;

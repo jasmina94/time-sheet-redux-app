@@ -1,36 +1,39 @@
-import PropTypes from 'prop-types';
 import '../../assets/css/Styles.css';
-import { connect } from 'react-redux';
 import { useState, useEffect } from 'react';
 import { NewItemForm } from '../forms/NewItemForm';
 import { AlphabetPanel } from '../shared/AlphabetPanel';
 import { SearchControl } from '../shared/SearchControl';
 import { LoadingComponent } from '../shared/LoadingComponent';
 import { ClientDetailsList } from './clients/ClientDetailsList';
+import { useAppDispatch, useAppSelector} from '../../state/hooks';
 import { fetchClients } from '../../state/actions/clients.actions';
 import { Pagination, PaginationDefaultCongif } from '../shared/Pagination';
 
-const ClientsTabContent = (props: any) => {
-	const [currentPage, setCurrentPage] = useState(props.currentPage);
-	const [dataPerPage, setDataPerPage] = useState(props.dataPerPage);
+export const ClientsTabContent = () => {
+	const dispatch = useAppDispatch();
 
-	const [searchTerm, setSearchTerm] = useState(props.searchTerm);
-	const [searchLetter, setSearchLetter] = useState(props.searchLetter);
+	const clients = useAppSelector(state => state.clientReducer.dataState.data);
+	const loaded = useAppSelector(state => state.clientReducer.dataState.loaded);
+	const loading = useAppSelector(state => state.clientReducer.dataState.loading);
+	const totalData = useAppSelector(state => state.clientReducer.dataState.total);
+	const totalNumOfPages = useAppSelector(state => state.clientReducer.pagingState.numberOfPages);
+
+	const [currentPage, setCurrentPage] = useState(useAppSelector(state => state.clientReducer.pagingState.currentPage));
+	const [dataPerPage, setDataPerPage] = useState(useAppSelector(state => state.clientReducer.pagingState.dataPerPage));
+
+	const [searchTerm, setSearchTerm] = useState(useAppSelector(state => state.clientReducer.searchState.term));
+	const [searchLetter, setSearchLetter] = useState(useAppSelector(state => state.clientReducer.searchState.letter));
 	
-	const [toggleNewItem, setToggleNewItem] = useState(props.newItemToggle);
+	const [toggleNewItem, setToggleNewItem] = useState(false);
 	const [paginationOptions] = useState(PaginationDefaultCongif.perPageOptions);
 
 	useEffect(() => {
-		props.fetchClients(currentPage, dataPerPage, searchTerm, searchLetter);
+		dispatch(fetchClients(currentPage, dataPerPage, searchTerm, searchLetter));
 	}, [currentPage, dataPerPage, searchLetter, searchTerm]);
 
-	useEffect(() => {
-		console.log('Use effect');
-	}, [toggleNewItem])
-
 	const reset = () => {
-		setCurrentPage(1);
-		setDataPerPage(3);
+		setCurrentPage(PaginationDefaultCongif.page);
+		setDataPerPage(PaginationDefaultCongif.limit);
 	}
 
 	const searchReset = () => {
@@ -59,6 +62,11 @@ const ClientsTabContent = (props: any) => {
 		setCurrentPage(PaginationDefaultCongif.page);
 	}
 
+	const handleClientUpdate = () => {
+		setToggleNewItem(!toggleNewItem);
+		dispatch(fetchClients(PaginationDefaultCongif.page, PaginationDefaultCongif.limit, '', ''));
+	}
+
 	return (
 		<section className='content'>
 			<h2><i className='ico clients'></i>Clients</h2>
@@ -67,19 +75,19 @@ const ClientsTabContent = (props: any) => {
 				<SearchControl name='search-client' search={searchByTerm} searchReset={searchReset} searchInProgress={() => setSearchLetter('')} />
 			</div>
 
-			{toggleNewItem && (<NewItemForm formType='client' handleUpdate={() => setToggleNewItem(!toggleNewItem)}/>)}
+			{toggleNewItem && (<NewItemForm formType='client' handleUpdate={handleClientUpdate}/>)}
 
 			<AlphabetPanel active={searchLetter} disabled='k' page={currentPage} perPage={dataPerPage}
 				search={searchByLetter} searchReset={searchLetterReset} />
 
-			{props.loading && <LoadingComponent />}
+			{loading && <LoadingComponent />}
 			
-			{props.loaded &&
+			{loaded &&
 				<>
-					<ClientDetailsList clients={props.clients} />
+					<ClientDetailsList clients={clients} />
 
-					<Pagination activePage={currentPage} dataLength={props.total}
-						perPage={dataPerPage} totalNumOfPages={props.numberOfPages}
+					<Pagination activePage={currentPage} dataLength={totalData}
+						perPage={dataPerPage} totalNumOfPages={totalNumOfPages}
 						paginate={(pageNum: number) => setCurrentPage(pageNum)} 
 						changeLimit={changeLimit}
 						options={paginationOptions} />
@@ -87,39 +95,3 @@ const ClientsTabContent = (props: any) => {
 		</section>
 	);
 }
-
-ClientsTabContent.propTypes = {
-	fetchClients: PropTypes.func.isRequired,
-
-	clients: PropTypes.array,
-	loaded: PropTypes.bool,
-	loading: PropTypes.bool,
-	total: PropTypes.number,
-
-	searchTerm: PropTypes.string,
-	searchLetter: PropTypes.string,
-
-	currentPage: PropTypes.number,
-	dataPerPage: PropTypes.number,
-	numberOfPages: PropTypes.number,
-
-	newItemToggle: PropTypes.bool
-}
-
-const mapStateToProps = (state: any) => ({
-	clients: state.clientReducer.dataState.data,
-	loaded: state.clientReducer.dataState.loaded,
-	loading: state.clientReducer.dataState.loading,
-	total: state.clientReducer.dataState.total,
-
-	searchTerm: state.clientReducer.searchState.term,
-	searchLetter: state.clientReducer.searchState.letter,
-
-	currentPage: state.clientReducer.pagingState.currentPage,
-	dataPerPage: state.clientReducer.pagingState.dataPerPage,
-	numberOfPages: state.clientReducer.pagingState.numberOfPages,
-
-	newItemToggle: state.clientReducer.actionInProgress
-});
-
-export default connect(mapStateToProps, { fetchClients })(ClientsTabContent);

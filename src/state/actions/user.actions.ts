@@ -1,10 +1,11 @@
 import { history } from '../../_helpers/historyHelper';
-import { userService } from '../../services/user.service';
-import { LOGIN_REQUEST, LOGIN_REQUEST_FAILURE, LOGIN_REQUEST_SUCCESS, LOGOUT } from './types';
+import { authService } from '../../services/authentication.service';
+import { FAILURE_MESSAGE, LOGIN_REQUEST, LOGIN_REQUEST_FAILURE, LOGIN_REQUEST_SUCCESS, LOGOUT, SUCCESS_MESSAGE } from './types';
 
 export const loginUser = (email: string, password: string, remember: boolean) => (dispatch: any) => {
-    dispatch({ type: LOGIN_REQUEST, payload: email});
-    userService.login(email, password, remember)
+    dispatch({ type: LOGIN_REQUEST, payload: email });
+
+    authService.login(email, password, remember)
         .then(res => {
             dispatch({
                 type: LOGIN_REQUEST_SUCCESS,
@@ -12,13 +13,20 @@ export const loginUser = (email: string, password: string, remember: boolean) =>
                     token: res.token
                 }
             });
+            dispatch({
+                type: SUCCESS_MESSAGE,
+                payload: { message: 'Welcome!' }
+            });
             history.push('/');
         })
         .catch(err => {
-            console.log(err);
             dispatch({
                 type: LOGIN_REQUEST_FAILURE,
-                payload: {}
+                payload: { err }
+            });
+            dispatch({
+                type: FAILURE_MESSAGE,
+                payload: { message: err }
             });
         });
 }
@@ -28,6 +36,6 @@ export const logoutUser = () => (dispatch: any) => {
         type: LOGOUT,
         payload: {}
     });
-    userService.logout();
+    authService.logout();
     history.push('/');
 }

@@ -1,7 +1,7 @@
-import { LOGIN_PATH } from "../_helpers/pathHelper";
-import { handleResponse } from "../_helpers/responseHandler";
+import { LOGIN_PATH } from '../_helpers/pathHelper';
+import { handleResponse } from '../_helpers/responseHandler';
 
-export const userService = {
+export const authService = {
     login,
     logout
 }

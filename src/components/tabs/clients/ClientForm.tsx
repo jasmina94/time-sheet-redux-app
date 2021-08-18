@@ -1,13 +1,15 @@
-import PropTypes from 'prop-types';
-import { connect } from 'react-redux';
 import { useState, useMemo } from 'react';
+import { Client } from '../../../model/model';
 import countryList from 'react-select-country-list';
+import { validateClient } from '../../../services/validation.service';
 import { createClient } from '../../../state/actions/clients.actions';
+import { useAppDispatch, useAppSelector } from '../../../state/hooks';
 
-const ClientForm = (props: any) => {
+export const ClientForm = (props: any) => {
+    const dispatch = useAppDispatch();
     const countries = useMemo(() => countryList().getData(), []);
-    const [client, setClient] = useState(props.newClient);
-    const [error, setError] = useState('');
+    const [client, setClient] = useState(useAppSelector(state => state.clientReducer.newItem.item) as Client);
+    const [error, setError] = useState(useAppSelector(state => state.clientReducer.newItem.error));
 
     const handleInputChange = (e: any) => {
         const name = e.target.name;
@@ -16,43 +18,13 @@ const ClientForm = (props: any) => {
         setClient({ ...client, [name]: value });
     }
 
-    const isValid = (): boolean => {
-        let valid = true;
-
-        if (client.name === undefined || client.name === '') {
-            setError('Name is required!');
-            return false;
-        }
-
-        if (client.address === undefined || client.address === '') {
-            setError('Address is required!');
-            return false;
-        }
-        if (client.city === undefined || client.city === '') {
-            setError('City is required!');
-            return false;
-        }
-
-        if (client.zip === undefined || client.zip === '') {
-            setError('Zip is required!');
-            return false;
-        }
-
-        if (client.country === undefined || client.country === '') {
-            setError('Country is required!');
-            return false;
-        }
-
-        return valid;
-    }
-
     const handleSave = (e: any) => {
         e.preventDefault();
-        if (isValid()) {
-            props.createClient(client);
-            if (props.error === '') {
-               props.handleSuccessResponse();
-            }
+        const result = validateClient(client);
+        if (result.isValid) {
+            dispatch(createClient(client, props.handleSuccessResponse));
+        } else {
+            setError(result.error);
         }
     }
 
@@ -90,7 +62,7 @@ const ClientForm = (props: any) => {
                 <li>
                     <label>Country:</label>
                     <select name='country' onChange={handleInputChange} value={client.country}>
-                        <option>Select country</option>
+                        <option key='#'>Select country</option>
                         {renderCountryOptions()}
                     </select>
                 </li>
@@ -104,20 +76,3 @@ const ClientForm = (props: any) => {
         </>
     );
 }
-
-ClientForm.propTypes = {
-    createClient: PropTypes.func.isRequired,
-    handleSuccessResponse: PropTypes.func.isRequired,
-
-    newClient: PropTypes.object,
-    error: PropTypes.string,
-    loading: PropTypes.bool
-}
-
-const mapStateToProps = (state: any) => ({
-    newClient: state.clientReducer.newItem.item,
-    error: state.clientReducer.newItem.error,
-    loading: state.clientReducer.newItem.loading
-})
-
-export default connect(mapStateToProps, { createClient })(ClientForm);

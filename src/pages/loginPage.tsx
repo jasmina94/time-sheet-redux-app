@@ -1,44 +1,29 @@
+
 import { useState } from 'react';
-import PropTypes from 'prop-types';
-import { connect } from 'react-redux';
 import { useHistory } from 'react-router-dom';
-import { loginUser } from '../state/actions/user.actions';
+import { useAppDispatch } from '../state/hooks';
 import MainLogo from '../components/shared/MainLogo';
 import ActionLink from '../components/shared/ActionLink';
+import { loginUser } from '../state/actions/user.actions';
+import { validateCredentials } from '../services/validation.service';
+import { showFailureMessage } from '../state/actions/ui.actions';
 
-const LoginPage = (props: any) => {
+export const LoginPage = () => {
     let history = useHistory();
+    const dispatch = useAppDispatch();
+    
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [rememberMe, setRememberMe] = useState(false);
 
-    const [errorEmail, setErrorEmail] = useState('');
-    const [errorPassword, setErrorPassword] = useState('');
-
     const handleForgetPassword = () => { history.push('/forgotPassword'); }
 
-    const isFormValid = (): boolean => {
-        let isValid = true;
-        const emailMask = /\S+@\S+\.\S+/;
-        if (email === undefined || email === '') {
-            setErrorEmail('E-mail is required!');
-            isValid = false;
-        } else if (!emailMask.test(email)) {
-            setErrorEmail('E-mail is not valid!');
-            isValid = false;
-        }
-
-        if (password === undefined || password === '') {
-            setErrorPassword('Password is required!');
-            isValid = false;
-        }
-
-        return isValid;
-    }
-
     const login = () => {
-        if (isFormValid()) {
-            props.loginUser(email, password, rememberMe);
+        const validationResult = validateCredentials(email, password);
+        if (validationResult.isValid) {
+            dispatch(loginUser(email, password, rememberMe));
+        } else {
+            dispatch(showFailureMessage(validationResult.error));
         }
     }
 
@@ -50,8 +35,6 @@ const LoginPage = (props: any) => {
         } else if (name === 'password') {
             setPassword(value);
         }
-        setErrorEmail('');
-        setErrorPassword('');
     }
 
     return (
@@ -66,14 +49,8 @@ const LoginPage = (props: any) => {
                                 className='in-text large' value={email} onChange={handleFormInputChange} />
                         </li>
                         <li>
-                            <label className='error-label'>{errorEmail}</label>
-                        </li>
-                        <li>
                             <input type='password' placeholder='Password' name='password'
                                 className='in-pass large' value={password} onChange={handleFormInputChange} />
-                        </li>
-                        <li>
-                            <label className='error-label'>{errorPassword}</label>
                         </li>
                         <li className='last'>
                             <input type='checkbox' className='in-checkbox' id='remember' checked={rememberMe} onChange={() => setRememberMe(!rememberMe)} />
@@ -89,14 +66,3 @@ const LoginPage = (props: any) => {
         </div>
     )
 }
-
-LoginPage.propTypes = {
-    loginUser: PropTypes.func.isRequired,
-    user: PropTypes.object
-}
-
-const mapStateToProps = (state: any) => ({
-    user: state.userReducer.userInfo
-});
-
-export default connect(mapStateToProps, { loginUser })(LoginPage);

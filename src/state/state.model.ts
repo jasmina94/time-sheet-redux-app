@@ -1,5 +1,13 @@
-import { UserSessionInfo } from '../model/model';
+import { Client, User, UserSessionInfo } from '../model/model';
 
+export interface UIState {
+    openSuccess: boolean,
+    openFailure: boolean,
+    openInfo: boolean,
+    successMessage: string,
+    failureMessage: string,
+    infoMessage: string
+}
 export interface DataState {
     data: []
     loaded: boolean,
@@ -20,22 +28,20 @@ export interface SearchState {
 export interface NewItemState {
     item: object,
     error: string,
-    toggle: boolean
 }
 
-export interface ItemState {
-    item: object,
-    error: string
-}
 export interface TabState {
-    actionInProgress: boolean,
     dataState: DataState,
     pagingState: PagingState,
     searchState: SearchState,
     newItem: NewItemState,
-    activeItem: ItemState
 }
 
+export interface ProjectState {
+    tabState: TabState,
+    leadOptions: any[],
+    customerOptions: any[]
+}
 export interface UserState {
     loggingIn: boolean,
     loggedIn: boolean,

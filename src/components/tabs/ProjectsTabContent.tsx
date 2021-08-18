@@ -1,38 +1,48 @@
 import '../../assets/css/Styles.css';
-import PropTypes from 'prop-types';
-import { connect } from 'react-redux';
 import { useState, useEffect } from 'react';
 import { NewItemForm } from '../forms/NewItemForm';
 import { AlphabetPanel } from '../shared/AlphabetPanel';
 import { SearchControl } from '../shared/SearchControl';
 import { LoadingComponent } from '../shared/LoadingComponent';
+import { useAppDispatch, useAppSelector } from '../../state/hooks';
 import { ProjectDetailsList } from './projects/ProjectDetailsList';
-import { fetchProjects} from '../../state/actions/projects.actions';
+import { fetchCustomers, fetchLeads, fetchProjects} from '../../state/actions/projects.actions';
 import { Pagination, PaginationDefaultCongif } from '../shared/Pagination';
 
-const ProjectsTabContent = (props: any) => {
-	const [currentPage, setCurrentPage] = useState(props.currentPage);
-	const [dataPerPage, setDataPerPage] = useState(props.dataPerPage);
+export const ProjectsTabContent = () => {
+	const dispatch = useAppDispatch();
 
-	const [searchTerm, setSearchTerm] = useState(props.searchTerm);
-	const [searchLetter, setSearchLetter] = useState(props.searchLetter);
+	const projects = useAppSelector(state => state.projectReducer.tabState.dataState.data);
+	const loaded = useAppSelector(state => state.projectReducer.tabState.dataState.loaded);
+	const loading = useAppSelector(state => state.projectReducer.tabState.dataState.loading);
+	const totalData = useAppSelector(state => state.projectReducer.tabState.dataState.total);
+	const totalNumOfPages = useAppSelector(state => state.projectReducer.tabState.pagingState.numberOfPages);
+	
+	const [currentPage, setCurrentPage] = useState(useAppSelector(state => state.projectReducer.tabState.pagingState.currentPage));
+	const [dataPerPage, setDataPerPage] = useState(useAppSelector(state => state.projectReducer.tabState.pagingState.dataPerPage));
+
+	const [searchTerm, setSearchTerm] = useState(useAppSelector(state => state.projectReducer.tabState.searchState.term));
+	const [searchLetter, setSearchLetter] = useState(useAppSelector(state=> state.projectReducer.tabState.searchState.letter));
 
 	const [toggleNewItem, setToggleNewItem] = useState(false);
 	const [paginationOptions] = useState(PaginationDefaultCongif.perPageOptions);
 
 	useEffect(() => {
-		props.fetchProjects(currentPage, dataPerPage, searchTerm, searchLetter);
+		dispatch(fetchLeads());
+		dispatch(fetchCustomers());
+	}, [])
+
+	useEffect(() => {
+		dispatch(fetchProjects(currentPage, dataPerPage, searchTerm, searchLetter));
 
 		if (toggleNewItem)
 			setToggleNewItem(!toggleNewItem);
 
 	}, [currentPage, dataPerPage, searchTerm, searchLetter])
 
-	console.log(props);
-
 	const reset = () => {
-		setCurrentPage(1);
-		setDataPerPage(3);
+		setCurrentPage(PaginationDefaultCongif.page);
+		setDataPerPage(PaginationDefaultCongif.limit);
 	}
 
 	const searchReset = () => {
@@ -61,6 +71,11 @@ const ProjectsTabContent = (props: any) => {
 		setCurrentPage(PaginationDefaultCongif.page);
 	}
 
+	const handleProjectUpdate = () => {
+		setToggleNewItem(!toggleNewItem);
+		dispatch(fetchProjects(PaginationDefaultCongif.page, PaginationDefaultCongif.limit, '', ''));
+	}
+
 	return (
 		<section className='content'>
 			<h2><i className='ico projects'></i>Projects</h2>
@@ -69,19 +84,19 @@ const ProjectsTabContent = (props: any) => {
 				<SearchControl name='search-project' search={searchByTerm} searchReset={searchReset} searchInProgress={() => setSearchLetter('')} />
 			</div>
 
-			{toggleNewItem && (<NewItemForm formType='project' handleToUpdate={() => console.log('update')} />)}
+			{toggleNewItem && (<NewItemForm formType='project' handleToUpdate={handleProjectUpdate} />)}
 
 			<AlphabetPanel active={searchLetter} type='projects' page={currentPage} perPage={dataPerPage}
 				search={searchByLetter} searchReset={searchLetterReset} />
 
-			{props.loading && <LoadingComponent />}
+			{loading && <LoadingComponent />}
 
-			{props.loaded && 
+			{loaded && 
 				<>
-					<ProjectDetailsList projects={props.projects} handleToUpdate={() => console.log('update')} />
+					<ProjectDetailsList projects={projects} />
 
-					<Pagination activePage={currentPage} dataLength={props.total}
-						perPage={dataPerPage} totalNumOfPages={props.numberOfPages}
+					<Pagination activePage={currentPage} dataLength={totalData}
+						perPage={dataPerPage} totalNumOfPages={totalNumOfPages}
 						paginate={(pageNum: number) => setCurrentPage(pageNum)} 
 						changeLimit={changeLimit}
 						options={paginationOptions} />
@@ -89,35 +104,3 @@ const ProjectsTabContent = (props: any) => {
 		</section>
 	);
 }
-
-ProjectsTabContent.propTypes = {
-	fetchProjects: PropTypes.func.isRequired,
-
-	projects: PropTypes.array,
-	loaded: PropTypes.bool,
-	loading: PropTypes.bool,
-	total: PropTypes.number,
-
-	searchTerm: PropTypes.string,
-	searchLetter: PropTypes.string,
-
-	currentPage: PropTypes.number,
-	dataPerPage: PropTypes.number,
-	numberOfPages: PropTypes.number
-}
-
-const mapStateToProps = (state: any) => ({
-	projects: state.projectReducer.dataState.data,
-	loaded: state.projectReducer.dataState.loaded,
-	loading: state.projectReducer.dataState.loading,
-	total: state.projectReducer.dataState.total,
-
-	searchTerm: state.projectReducer.searchState.term,
-	searchLetter: state.projectReducer.searchState.letter,
-
-	currentPage: state.projectReducer.pagingState.currentPage,
-	dataPerPage: state.projectReducer.pagingState.dataPerPage,
-	numberOfPages: state.projectReducer.pagingState.numberOfPages
-});
-
-export default connect(mapStateToProps, { fetchProjects })(ProjectsTabContent);
