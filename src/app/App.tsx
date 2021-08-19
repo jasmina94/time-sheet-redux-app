@@ -5,16 +5,18 @@ import { ForgotPasswordPage } from '../pages';
 import AlertSnackbar from '../components/snackbar/AlertSnackbar';
 import { LoginPage } from '../pages/loginPage';
 import HomePage from '../pages/homePage';
+import { ChangePasswordPage } from '../pages/changePasswordPage';
 
 const App = () => {
   return (
     <>
-      <AlertSnackbar/>
+      <AlertSnackbar />
       <Router history={history}>
         <Switch>
           <PrivateRoute exact path="/" component={HomePage} />
           <Route path="/login" component={LoginPage} />
           <Route path="/forgotPassword" component={ForgotPasswordPage} />
+          <Route path="/changePassword" component={ChangePasswordPage} />
         </Switch>
       </Router>
     </>
