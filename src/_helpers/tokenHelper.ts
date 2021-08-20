@@ -3,7 +3,8 @@ import jwtDecode from 'jwt-decode';
 export const tokenHelper = {
     getAuthHeader,
     isTokenExpired,
-    getUserInfo
+    getUserInfo,
+    getTimeout
 }
 
 function getAuthHeader() {
@@ -28,6 +29,14 @@ function isTokenExpired(token: string) {
     }
 
     return userExpired;
+}
+
+
+function getTimeout(token: any) {
+    const current = Date.now();
+    const exp = token.exp * 1000;
+    const diff = Math.abs(exp - current);
+    return diff;
 }
 
 function getUserInfo(token: string): any {

@@ -1,22 +1,32 @@
 import { history } from '../../_helpers/historyHelper';
 import { authService } from '../../services/authentication.service';
-import { CHANGE_PASSWORD_REQUEST, FAILURE_MESSAGE, FORGOT_PASSWORD_REQUEST, LOGIN_REQUEST, LOGIN_REQUEST_FAILURE, LOGIN_REQUEST_SUCCESS, LOGOUT, SUCCESS_MESSAGE } from './types';
+import { CHANGE_PASSWORD_REQUEST, FAILURE_MESSAGE, FORGOT_PASSWORD_REQUEST, INFO_MESSAGE, LOGIN_REQUEST, LOGIN_REQUEST_FAILURE, LOGIN_REQUEST_SUCCESS, LOGOUT, SUCCESS_MESSAGE } from './types';
 import { userService } from '../../services/users.service';
+import { tokenHelper } from '../../_helpers/tokenHelper';
 
 export const loginUser = (email: string, password: string, remember: boolean) => (dispatch: any) => {
     dispatch({ type: LOGIN_REQUEST, payload: email });
     authService.login(email, password, remember)
         .then(res => {
+            const decodedToken = tokenHelper.getUserInfo(res.token);
+            const timeout = tokenHelper.getTimeout(decodedToken);
+
             dispatch({
                 type: LOGIN_REQUEST_SUCCESS,
                 payload: {
-                    token: res.token
+                    decodedToken: decodedToken
                 }
             });
             dispatch({
                 type: SUCCESS_MESSAGE,
                 payload: { message: 'Welcome!' }
             });
+            
+            setTimeout(() => {
+                dispatch({ type: INFO_MESSAGE, payload: { message: 'Session expired!'}});
+                dispatch(logoutUser());
+            }, timeout);
+
             history.push('/');
         })
         .catch(err => {

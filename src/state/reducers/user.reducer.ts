@@ -21,17 +21,16 @@ export default function userReducer(state = initialState, action: any) {
                 loggingIn: true
             }
         case LOGIN_REQUEST_SUCCESS:
-            const decodedToken = tokenHelper.getUserInfo(action.payload.token);
             return {
                 ...state,
                 loggingIn: false,
                 loggedIn: true,
                 userInfo: {
-                    email: decodedToken.userInfo.email,
-                    firstname: decodedToken.userInfo.firstname,
-                    lastname: decodedToken.userInfo.lastname
+                    email: action.payload.decodedToken.userInfo.email,
+                    firstname: action.payload.decodedToken.userInfo.firstname,
+                    lastname: action.payload.decodedToken.userInfo.lastname
                 },
-                ttl: decodedToken.iat
+                ttl: action.payload.decodedToken.iat
             }
         case LOGIN_REQUEST_FAILURE:
             return {
